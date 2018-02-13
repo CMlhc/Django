@@ -1,9 +1,11 @@
+from django.shortcuts import render
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+# Create your views here.
+#展示帖子
 from django.shortcuts import render, get_object_or_404
 from .models import Post
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import ListView
-
-def post_list(request, category=None):
+def post_list(request):
     object_list = Post.published.all()
     paginator = Paginator(object_list, 3) # 3 posts in each page
     page = request.GET.get('page')
@@ -15,18 +17,13 @@ def post_list(request, category=None):
     except EmptyPage:
         # If page is out of range deliver last page of results
         posts = paginator.page(paginator.num_pages)
-    return render(request, 'blog/post/list.html', {'page': page,
-                                                   'posts': posts})
+    return render(request,
+                  'blog/post/list.html',
+                  {'page': page,
+                   'posts': posts})
 
 
-class PostListView(ListView):
-
-    queryset = Post.published.all()
-    context_object_name = 'posts'
-    paginate_by = 5
-    template_name = 'blog/post/list.html'
-
-
+# 单独展示一个帖子
 def post_detail(request, year, month, day, post):
     post = get_object_or_404(Post, slug=post,
                                    status='published',
@@ -36,3 +33,11 @@ def post_detail(request, year, month, day, post):
     return render(request,
                   'blog/post/detail.html',
                   {'post': post})
+
+
+from django.views.generic import ListView
+class PostListView(ListView):
+    queryset = Post.published.all()
+    context_object_name = 'posts'
+    paginate_by = 3
+    template_name = 'blog/post/list.html'
